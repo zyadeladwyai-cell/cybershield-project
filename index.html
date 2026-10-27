@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CyberShield - فاحص أمان الروابط</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #080c14;
+      --card-bg: #0f172a;
+      --card-border: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-cyan: #06b6d4;
+      --accent-blue: #3b82f6;
+      --safe-color: #10b981;
+      --suspicious-color: #f59e0b;
+      --phishing-color: #ef4444;
+      --font-arabic: 'Cairo', sans-serif;
+      --font-latin: 'Inter', sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-arabic);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    html[lang="en"] body {
+      font-family: var(--font-latin);
+    }
+
+    .mono { font-family: var(--font-code); }
+    .text-danger { color: var(--phishing-color) !important; }
+    .text-warning { color: var(--suspicious-color) !important; }
+    .text-success { color: var(--safe-color) !important; }
+    .mt-10 { margin-top: 10px; }
+    .hidden { display: none !important; }
+
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 32px 32px;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .glow-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(140px);
+      z-index: -1;
+      opacity: 0.18;
+    }
+    .orb-1 { top: -10%; right: -5%; width: 500px; height: 500px; background: var(--accent-cyan); }
+    .orb-2 { bottom: -10%; left: -5%; width: 500px; height: 500px; background: var(--accent-blue); }
+
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      max-width: 1050px;
+      margin: 0 auto;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.25rem;
+    }
+    .brand-shield { font-size: 1.5rem; }
+    .brand-text {
+      background: linear-gradient(135deg, #fff, var(--text-muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .nav-link:hover { color: var(--accent-cyan); }
+    .lang-switcher {
+      display: flex;
+      background: #141d30;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 3px;
+    }
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 5px 14px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .lang-btn.active {
+      background: var(--accent-cyan);
+      color: #041019;
+    }
+
+    .container {
+      max-width: 1050px;
+      margin: 0 auto;
+      padding: 30px 20px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .header {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+    .header h1 {
+      font-size: 2.1rem;
+      font-weight: 900;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      max-width: 640px;
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    }
+
+    .tabs-header {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 10px;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      cursor: pointer;
+      font-weight: 700;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: #1e293b;
+      color: var(--accent-cyan);
+    }
+
+    .input-wrapper {
+      display: flex;
+      align-items: center;
+      background: #131d33;
+      border: 2px solid #243352;
+      border-radius: 12px;
+      padding: 6px 8px;
+    }
+    .input-wrapper:focus-within {
+      border-color: var(--accent-cyan);
+    }
+    .url-icon {
+      font-size: 1.2rem;
+      padding: 0 10px;
+    }
+    .input-wrapper input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 1rem;
+      font-family: var(--font-code);
+      padding: 10px;
+      outline: none;
+      direction: ltr;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      border: none;
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 12px 26px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+
+    .btn-secondary {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .btn-secondary:hover { background: #334155; }
+
+    .batch-textarea {
+      width: 100%;
+      background: #131d33;
+      border: 1px solid #243352;
+      border-radius: 10px;
+      color: #fff;
+      padding: 12px;
+      outline: none;
+      direction: ltr;
+      resize: vertical;
+    }
+
+    .quick-examples {
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .examples-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .chip {
+      background: #152037;
+      border: 1px solid #253556;
+      color: var(--text-main);
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .chip:hover { transform: translateY(-1px); }
+    .chip-safe:hover { border-color: var(--safe-color); color: var(--safe-color); }
+    .chip-suspicious:hover { border-color: var(--suspicious-color); color: var(--suspicious-color); }
+    .chip-phishing:hover { border-color: var(--phishing-color); color: var(--phishing-color); }
+
+    .decision-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-width: 2px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .banner-safe {
+      border-color: var(--safe-color);
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), #0f172a);
+    }
+    .banner-suspicious {
+      border-color: var(--suspicious-color);
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), #0f172a);
+    }
+    .banner-phishing {
+      border-color: var(--phishing-color);
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), #0f172a);
+    }
+    .banner-status-side {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .status-indicator { font-size: 2.5rem; }
+    .status-label { font-size: 0.85rem; color: var(--text-muted); }
+    .status-title { font-size: 1.8rem; font-weight: 900; }
+    .threat-meter-side { min-width: 240px; }
+    .threat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .threat-score {
+      font-size: 1.8rem;
+      font-weight: 900;
+    }
+    .progress-bar {
+      height: 8px;
+      background: #1e293b;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 5px;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .findings-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .finding-item {
+      background: #152037;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .finding-item.warn {
+      border-inline-start: 4px solid var(--suspicious-color);
+    }
+    .finding-item.danger {
+      border-inline-start: 4px solid var(--phishing-color);
+    }
+    .finding-item.safe {
+      border-inline-start: 4px solid var(--safe-color);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .feature-item {
+      background: #152037;
+      border: 1px solid #202d45;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .feature-name { font-size: 0.8rem; color: var(--text-muted); }
+    .feature-val { font-size: 1.1rem; font-weight: 700; }
+
+    .table-responsive {
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: right;
+      font-size: 0.85rem;
+    }
+    html[lang="en"] .history-table {
+      text-align: left;
+    }
+    .history-table th, .history-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .history-table th { color: var(--text-muted); font-weight: 600; }
+    .history-table td.url-cell {
+      font-family: var(--font-code);
+      direction: ltr;
+      max-width: 280px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .btn-text-only {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-inline-end: 10px;
+    }
+    .btn-text-only:hover { color: #fff; }
+    .btn-retest {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: var(--accent-cyan);
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+
+  <nav class="top-nav">
+    <div class="brand">
+      <span class="brand-shield">🛡️</span>
+      <span class="brand-text">CyberShield</span>
+    </div>
+    <div class="nav-actions">
+      <a href="admin.html" class="nav-link">لوحة الإدارة (Admin)</a>
+      <a href="auth.html" class="btn-secondary" style="padding: 6px 14px; text-decoration: none; font-size: 0.85rem;" onclick="sessionStorage.removeItem('userLoggedIn');">تسجيل الخروج</a>
+      <div class="lang-switcher">
+        <button class="lang-btn active" id="lang-ar-btn" onclick="setLanguage('ar')">العربية</button>
+        <button class="lang-btn" id="lang-en-btn" onclick="setLanguage('en')">English</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="header">
+      <h1 data-i18n="main_title">فحص وتحليل أمان الروابط الإلكترونية</h1>
+      <p class="subtitle" data-i18n="main_subtitle">خدمة حماية فورية للكشف عن الروابط الاحتيالية ومواقع التصيد وسرقة البيانات قبل فتحها</p>
+    </header>
+
+    <section class="card input-card">
+      <div class="tabs-header">
+        <button class="tab-btn active" id="single-scan-tab" data-i18n="tab_single">فحص رابط</button>
+        <button class="tab-btn" id="batch-scan-tab" data-i18n="tab_batch">فحص روابط متعددة</button>
+      </div>
+
+      <div id="single-scan-panel">
+        <form id="scan-form" class="scan-form">
+          <div class="input-wrapper">
+            <span class="url-icon">🌐</span>
+            <input 
+              type="text" 
+              id="url-input" 
+              placeholder="ضع الرابط هنا لفحصه، مثال: https://example.com" 
+              data-i18n-placeholder="input_placeholder"
+              required 
+              autocomplete="off"
+            >
+            <button type="submit" id="scan-btn" class="btn-primary">
+              <span class="btn-text" data-i18n="btn_scan">فحص الرابط</span>
+            </button>
+          </div>
+        </form>
+
+        <div class="quick-examples">
+          <span class="examples-label" data-i18n="quick_examples_label">روابط للتجربة:</span>
+          <button class="chip chip-safe" data-url="https://www.google.com" data-i18n="example_safe">رابط آمن</button>
+          <button class="chip chip-suspicious" data-url="https://secure-login.free-webhosting.net/account/update-billing" data-i18n="example_suspicious">رابط مشبوه</button>
+          <button class="chip chip-phishing" data-url="http://192.168.0.105/paypal-verify-account@fake-security.xyz/login.php" data-i18n="example_phishing">رابط تصيد احتيالي</button>
+        </div>
+      </div>
+
+      <div id="batch-scan-panel" class="hidden">
+        <textarea id="batch-input" rows="4" class="batch-textarea mono" placeholder="https://example.com&#10;http://192.168.1.1/login&#10;https://google.com"></textarea>
+        <button id="batch-scan-btn" class="btn-primary mt-10" data-i18n="btn_batch_scan">فحص جميع الروابط</button>
+      </div>
+    </section>
+
+    <main id="results-area" class="results-area hidden">
+      <section class="card decision-banner" id="decision-banner">
+        <div class="banner-status-side">
+          <div class="status-indicator" id="status-icon">🛡️</div>
+          <div>
+            <div class="status-label" data-i18n="result_label">نتيجة الفحص الأمني:</div>
+            <h2 class="status-title" id="final-verdict">--</h2>
+            <p class="status-desc" id="verdict-summary">--</p>
+          </div>
+        </div>
+        <div class="threat-meter-side">
+          <div class="threat-header">
+            <span class="threat-label" data-i18n="threat_level">مستوى الخطورة</span>
+            <span class="threat-score" id="threat-score-val">0%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="threat-bar-fill"></div>
+          </div>
+          <button id="download-report-btn" class="btn-secondary mt-10" data-i18n="btn_download_report">📥 تحميل تقرير الفحص</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h3 data-i18n="security_findings_title">الملاحظات الأمنية المكتشفة</h3>
+        </div>
+        <ul id="findings-list" class="findings-list"></ul>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h3 data-i18n="analysis_summary_title">تفاصيل وتحليل الرابط</h3>
+        </div>
+        <div class="features-grid" id="features-grid"></div>
+      </section>
+    </main>
+
+    <section class="card history-card">
+      <div class="card-header">
+        <h3 data-i18n="history_title">سجل الفحوصات السابقة</h3>
+        <div class="actions">
+          <button id="export-csv-btn" class="btn-text-only" data-i18n="btn_export_csv">تصدير CSV</button>
+          <button id="clear-history" class="btn-text-only text-danger" data-i18n="btn_clear_history">مسح السجل</button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th data-i18n="th_url">الرابط</th>
+              <th data-i18n="th_verdict">الحالة</th>
+              <th data-i18n="th_threat">مستوى الخطورة</th>
+              <th data-i18n="th_time">التوقيت</th>
+              <th data-i18n="th_action">إجراء</th>
+            </tr>
+          </thead>
+          <tbody id="history-table-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    if (!sessionStorage.getItem("userLoggedIn")) {
+      window.location.href = "auth.html";
+    }
+
+    const i18n = {
+      ar: {
+        main_title: "فحص وتحليل أمان الروابط الإلكترونية",
+        main_subtitle: "خدمة حماية فورية للكشف عن الروابط الاحتيالية ومواقع التصيد وسرقة البيانات قبل فتحها",
+        tab_single: "فحص رابط",
+        tab_batch: "فحص روابط متعددة",
+        input_placeholder: "ضع الرابط هنا لفحصه، مثال: https://example.com",
+        btn_scan: "فحص الرابط",
+        btn_scanning: "جاري الفحص...",
+        quick_examples_label: "روابط للتجربة:",
+        example_safe: "رابط آمن",
+        example_suspicious: "رابط مشبوه",
+        example_phishing: "رابط تصيد احتيالي",
+        btn_batch_scan: "فحص جميع الروابط",
+        result_label: "نتيجة الفحص الأمني:",
+        threat_level: "مستوى الخطورة",
+        btn_download_report: "📥 تحميل تقرير الفحص",
+        security_findings_title: "الملاحظات الأمنية المكتشفة",
+        analysis_summary_title: "تفاصيل وتحليل الرابط",
+        history_title: "سجل الفحوصات السابقة",
+        btn_export_csv: "تصدير CSV",
+        btn_clear_history: "مسح السجل",
+        th_url: "الرابط",
+        th_verdict: "الحالة",
+        th_threat: "مستوى الخطورة",
+        th_time: "التوقيت",
+        th_action: "إجراء",
+        btn_retest: "إعادة فحص",
+        empty_history: "لا توجد أي فحوصات سابقة.",
+        f_url_len: "طول الرابط",
+        f_dots: "عدد النقاط",
+        f_slashes: "الشرطات المائلة (/)",
+        f_subdomains: "النطاقات الفرعية",
+        f_ip: "استخدام عنوان IP",
+        f_at: "وجود رمز تحويل خفي (@)",
+        f_https: "تشفير الاتصال (HTTPS)",
+        f_words: "كلمات تسجيل حساسة",
+        val_yes: "نعم",
+        val_no: "لا",
+        verdict_safe: "آمن (Safe)",
+        verdict_suspicious: "مشبوه (Suspicious)",
+        verdict_phishing: "تصيد احتيالي (Phishing)",
+        verdict_safe_desc: "الرابط آمن وموثوق، لا توجد أي مؤشرات تهديد أو احتيال.",
+        verdict_suspicious_desc: "رابط مشبوه وغير موثوق بنسبة كبيرة، يُنصح بتجنب إدخال أي بيانات سرية.",
+        verdict_phishing_desc: "خطر حقيقي! هذا الرابط صفحة تصيد احتيالية لسرقة الحسابات والبيانات.",
+        reason_ip: "تم استخدام عنوان IP مباشر بدلاً من اسم نطاق رسمي موثوق.",
+        reason_at: "يحتوي الرابط على رمز (@) الذي يُستخدم عادة لتضليل المتصفح وتوجيهه لموقع خفي.",
+        reason_http: "الاتصال غير مشفر ولا يحمل شهادة أمان (HTTP فقط).",
+        reason_subdomains: "عدد كبير وغير طبيعي من النطاقات الفرعية ({count} نطاقات).",
+        reason_dots: "تكرار غير طبيعي للنقاط داخل الرابط ({count} نقاط).",
+        reason_length: "طول الرابط كبير جداً بشكل مريب ({count} حرف).",
+        reason_words: "يحتوي الرابط على كلمات حساسة تُستغل في الاحتيال: ({words}).",
+        reason_clean: "الرابط يتبع المعايير القياسية الآمنة ولم يتم رصد أي سلوك احتيالي."
+      },
+      en: {
+        main_title: "URL Security & Threat Scanner",
+        main_subtitle: "Instant cyber-protection to detect phishing URLs and credential-harvesting websites before clicking",
+        tab_single: "Single URL",
+        tab_batch: "Batch URLs",
+        input_placeholder: "Paste URL to check, e.g., https://example.com",
+        btn_scan: "Scan URL",
+        btn_scanning: "Scanning...",
+        quick_examples_label: "Preset Links:",
+        example_safe: "Safe Link",
+        example_suspicious: "Suspicious Link",
+        example_phishing: "Phishing Link",
+        btn_batch_scan: "Scan All Links",
+        result_label: "Security Assessment:",
+        threat_level: "Threat Level",
+        btn_download_report: "📥 Download Security Report",
+        security_findings_title: "Detected Security Findings",
+        analysis_summary_title: "URL Structure Analysis",
+        history_title: "Past Scans History",
+        btn_export_csv: "Export CSV",
+        btn_clear_history: "Clear History",
+        th_url: "URL",
+        th_verdict: "Status",
+        th_threat: "Threat Level",
+        th_time: "Time",
+        th_action: "Action",
+        btn_retest: "Re-scan",
+        empty_history: "No past scans recorded yet.",
+        f_url_len: "URL Length",
+        f_dots: "Dots Count",
+        f_slashes: "Slashes Count (/)",
+        f_subdomains: "Subdomains Count",
+        f_ip: "Uses Raw IP Host",
+        f_at: "Hidden Redirect Symbol (@)",
+        f_https: "Encrypted (HTTPS)",
+        f_words: "Sensitive Keywords",
+        val_yes: "Yes",
+        val_no: "No",
+        verdict_safe: "Safe",
+        verdict_suspicious: "Suspicious",
+        verdict_phishing: "Phishing",
+        verdict_safe_desc: "This URL appears legitimate and safe to visit without detected security risks.",
+        verdict_suspicious_desc: "Suspicious patterns detected. Avoid entering sensitive passwords or payment info.",
+        verdict_phishing_desc: "High Risk! Malicious phishing signature detected targeting credentials or accounts.",
+        reason_ip: "Raw IP address used in place of an official domain name.",
+        reason_at: "Deceptive '@' symbol found, commonly used for hidden redirection.",
+        reason_http: "Unencrypted transmission (HTTP connection without SSL).",
+        reason_subdomains: "Unusually high number of subdomains ({count} subdomains).",
+        reason_dots: "Excessive number of dots in the URL structure ({count} dots).",
+        reason_length: "Excessively long URL structure ({count} characters).",
+        reason_words: "Targeted authentication keywords detected: ({words}).",
+        reason_clean: "Standard legitimate link structure. No threats detected."
+      }
+    };
+
+    let currentLang = "ar";
+    const SUSPICIOUS_WORDS = [
+      "login", "verify", "account", "update", "banking", "secure", 
+      "signin", "ebayisapi", "paypal", "password", "service", "confirm"
+    ];
+
+    let lastScanResult = null;
+    let scanHistory = JSON.parse(localStorage.getItem("user_scan_history") || "[]");
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderHistoryTable();
+
+      const singleTab = document.getElementById("single-scan-tab");
+      const batchTab = document.getElementById("batch-scan-tab");
+      const singlePanel = document.getElementById("single-scan-panel");
+      const batchPanel = document.getElementById("batch-scan-panel");
+
+      singleTab.addEventListener("click", () => {
+        singleTab.classList.add("active");
+        batchTab.classList.remove("active");
+        singlePanel.classList.remove("hidden");
+        batchPanel.classList.add("hidden");
+      });
+
+      batchTab.addEventListener("click", () => {
+        batchTab.classList.add("active");
+        singleTab.classList.remove("active");
+        batchPanel.classList.remove("hidden");
+        singlePanel.classList.add("hidden");
+      });
+
+      document.querySelectorAll(".chip").forEach((chip) => {
+        chip.addEventListener("click", () => {
+          const url = chip.getAttribute("data-url");
+          document.getElementById("url-input").value = url;
+          triggerScan(url);
+        });
+      });
+
+      document.getElementById("scan-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const url = document.getElementById("url-input").value.trim();
+        if (url) triggerScan(url);
+      });
+
+      document.getElementById("batch-scan-btn").addEventListener("click", async () => {
+        const lines = document.getElementById("batch-input").value.split("\n").map(l => l.trim()).filter(Boolean);
+        if (!lines.length) return alert(currentLang === "ar" ? "يرجى إدخال رابط واحد على الأقل." : "Please enter at least one URL.");
+
+        for (const url of lines) {
+          await triggerScan(url, false);
+          await sleep(200);
+        }
+        alert(currentLang === "ar" ? `تم فحص ${lines.length} رابط بنجاح!` : `Successfully scanned ${lines.length} links!`);
+      });
+
+      document.getElementById("clear-history").addEventListener("click", () => {
+        scanHistory = [];
+        localStorage.removeItem("user_scan_history");
+        renderHistoryTable();
+      });
+      document.getElementById("export-csv-btn").addEventListener("click", exportHistoryToCSV);
+      document.getElementById("download-report-btn").addEventListener("click", downloadAuditReport);
+    });
+
+    window.setLanguage = function(lang) {
+      currentLang = lang;
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+
+      document.getElementById("lang-ar-btn").classList.toggle("active", lang === "ar");
+      document.getElementById("lang-en-btn").classList.toggle("active", lang === "en");
+
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (i18n[lang][key]) el.textContent = i18n[lang][key];
+      });
+
+      document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+        const key = el.getAttribute("data-i18n-placeholder");
+        if (i18n[lang][key]) el.setAttribute("placeholder", i18n[lang][key]);
+      });
+
+      if (lastScanResult) {
+        displayResults(lastScanResult, false);
+      }
+
+      renderHistoryTable();
+    };
+
+    async function triggerScan(rawUrl, shouldScroll = true) {
+      const scanBtn = document.getElementById("scan-btn");
+      scanBtn.disabled = true;
+      scanBtn.querySelector(".btn-text").textContent = i18n[currentLang].btn_scanning;
+
+      await sleep(350);
+      const normalizedUrl = normalizeUrl(rawUrl);
+      const features = extractFeatures(normalizedUrl);
+      const assessment = computeSecurityAssessment(features);
+
+      lastScanResult = {
+        normalizedUrl,
+        features,
+        assessment
+      };
+
+      saveToHistory({
+        url: normalizedUrl,
+        threatScore: assessment.threatScore,
+        verdictKey: assessment.verdictKey,
+        timestamp: new Date().toLocaleTimeString(currentLang === "ar" ? "ar-EG" : "en-US")
+      });
+
+      displayResults(lastScanResult, shouldScroll);
+
+      scanBtn.disabled = false;
+      scanBtn.querySelector(".btn-text").textContent = i18n[currentLang].btn_scan;
+    }
+
+    function normalizeUrl(url) {
+      let cleaned = url.trim();
+      if (!/^https?:\/\//i.test(cleaned)) cleaned = "http://" + cleaned;
+      return cleaned;
+    }
+
+    function extractFeatures(urlStr) {
+      let parsed;
+      try {
+        parsed = new URL(urlStr);
+      } catch (e) {
+        parsed = { hostname: urlStr, pathname: "", protocol: "http:" };
+      }
+
+      const hostname = parsed.hostname || "";
+      const length = urlStr.length;
+      const dotsCount = (urlStr.match(/\./g) || []).length;
+      const slashesCount = (urlStr.match(/\//g) || []).length;
+      const hostParts = hostname.split(".");
+      const subdomainsCount = hostParts.length > 2 ? hostParts.length - 2 : 0;
+      const hasIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname);
+      const hasAtSymbol = urlStr.includes("@");
+      const isHttps = parsed.protocol === "https:";
+      const foundWords = SUSPICIOUS_WORDS.filter(w => urlStr.toLowerCase().includes(w));
+
+      return {
+        urlLength: length,
+        dotsCount: dotsCount,
+        slashesCount: slashesCount,
+        subdomainsCount: subdomainsCount,
+        hasIp: hasIp,
+        hasAtSymbol: hasAtSymbol,
+        isHttps: isHttps,
+        suspiciousWordsCount: foundWords.length,
+        detectedWords: foundWords
+      };
+    }
+
+    function computeSecurityAssessment(f) {
+      let threatScore = 0;
+      const findingKeys = [];
+
+      if (f.hasIp) {
+        threatScore += 35;
+        findingKeys.push({ key: "reason_ip", type: "danger" });
+      }
+      if (f.hasAtSymbol) {
+        threatScore += 30;
+        findingKeys.push({ key: "reason_at", type: "danger" });
+      }
+      if (!f.isHttps) {
+        threatScore += 15;
+        findingKeys.push({ key: "reason_http", type: "warn" });
+      }
+      if (f.subdomainsCount >= 3) {
+        threatScore += 20;
+        findingKeys.push({ key: "reason_subdomains", count: f.subdomainsCount, type: "warn" });
+      }
+      if (f.dotsCount > 4) {
+        threatScore += 10;
+        findingKeys.push({ key: "reason_dots", count: f.dotsCount, type: "warn" });
+      }
+      if (f.urlLength > 75) {
+        threatScore += 10;
+        findingKeys.push({ key: "reason_length", count: f.urlLength, type: "warn" });
+      }
+      if (f.suspiciousWordsCount > 0) {
+        threatScore += f.suspiciousWordsCount * 12;
+        findingKeys.push({ key: "reason_words", words: f.detectedWords.join(", "), type: "danger" });
+      }
+
+      threatScore = Math.min(threatScore, 100);
+
+      let verdictKey = "verdict_safe";
+      let badgeClass = "banner-safe";
+      let color = "#10b981";
+      let icon = "✅";
+
+      if (threatScore >= 60) {
+        verdictKey = "verdict_phishing";
+        badgeClass = "banner-phishing";
+        color = "#ef4444";
+        icon = "🚨";
+      } else if (threatScore >= 30) {
+        verdictKey = "verdict_suspicious";
+        badgeClass = "banner-suspicious";
+        color = "#f59e0b";
+        icon = "⚠️";
+      }
+
+      if (findingKeys.length === 0) {
+        findingKeys.push({ key: "reason_clean", type: "safe" });
+      }
+
+      return { threatScore, verdictKey, badgeClass, color, icon, findingKeys };
+    }
+
+    function displayResults(data, shouldScroll) {
+      const resultsArea = document.getElementById("results-area");
+      resultsArea.classList.remove("hidden");
+
+      const { features, assessment } = data;
+      const t = i18n[currentLang];
+
+      const banner = document.getElementById("decision-banner");
+      banner.className = `card decision-banner ${assessment.badgeClass}`;
+      document.getElementById("status-icon").textContent = assessment.icon;
+      
+      const verdictEl = document.getElementById("final-verdict");
+      verdictEl.textContent = t[assessment.verdictKey];
+      verdictEl.style.color = assessment.color;
+
+      const summaryKey = assessment.verdictKey + "_desc";
+      document.getElementById("verdict-summary").textContent = t[summaryKey];
+      
+      const scoreVal = document.getElementById("threat-score-val");
+      scoreVal.textContent = `${assessment.threatScore}%`;
+      scoreVal.style.color = assessment.color;
+
+      const barFill = document.getElementById("threat-bar-fill");
+      barFill.style.width = `${assessment.threatScore}%`;
+      barFill.style.backgroundColor = assessment.color;
+
+      const findingsList = document.getElementById("findings-list");
+      findingsList.innerHTML = assessment.findingKeys.map(item => {
+        let msg = t[item.key] || "";
+        if (item.count !== undefined) msg = msg.replace("{count}", item.count);
+        if (item.words !== undefined) msg = msg.replace("{words}", item.words);
+        const symbol = item.type === "danger" ? "❌" : (item.type === "warn" ? "⚠️" : "✔️");
+        return `<li class="finding-item ${item.type}"><span>${symbol}</span><span>${msg}</span></li>`;
+      }).join("");
+
+      const grid = document.getElementById("features-grid");
+      grid.innerHTML = `
+        <div class="feature-item">
+          <span class="feature-name">${t.f_https}</span>
+          <span class="feature-val mono ${features.isHttps ? 'text-success' : 'text-danger'}">${features.isHttps ? t.val_yes : t.val_no}</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-name">${t.f_ip}</span>
+          <span class="feature-val mono ${features.hasIp ? 'text-danger' : 'text-success'}">${features.hasIp ? t.val_yes : t.val_no}</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-name">${t.f_at}</span>
+          <span class="feature-val mono ${features.hasAtSymbol ? 'text-danger' : 'text-success'}">${features.hasAtSymbol ? t.val_yes : t.val_no}</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-name">${t.f_words}</span>
+          <span class="feature-val mono">${features.suspiciousWordsCount}</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-name">${t.f_url_len}</span>
+          <span class="feature-val mono">${features.urlLength}</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-name">${t.f_dots}</span>
+          <span class="feature-val mono">${features.dotsCount}</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-name">${t.f_slashes}</span>
+          <span class="feature-val mono">${features.slashesCount}</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-name">${t.f_subdomains}</span>
+          <span class="feature-val mono">${features.subdomainsCount}</span>
+        </div>
+      `;
+
+      if (shouldScroll) {
+        resultsArea.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+
+    function saveToHistory(entry) {
+      scanHistory.unshift(entry);
+      if (scanHistory.length > 20) scanHistory.pop();
+      localStorage.setItem("user_scan_history", JSON.stringify(scanHistory));
+      renderHistoryTable();
+    }
+
+    function renderHistoryTable() {
+      const tbody = document.getElementById("history-table-body");
+      const t = i18n[currentLang];
+      if (!scanHistory.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: #64748b; padding: 20px;">${t.empty_history}</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = scanHistory.map((item) => `
+        <tr>
+          <td class="url-cell" title="${item.url}">${item.url}</td>
+          <td><strong>${t[item.verdictKey] || item.verdictKey}</strong></td>
+          <td class="mono">${item.threatScore}%</td>
+          <td style="color: var(--text-muted);">${item.timestamp}</td>
+          <td><button class="btn-retest" onclick="retestUrl('${item.url}')">${t.btn_retest}</button></td>
+        </tr>
+      `).join("");
+    }
+
+    window.retestUrl = function(url) {
+      document.getElementById("url-input").value = url;
+      triggerScan(url);
+    };
+
+    function downloadAuditReport() {
+      if (!lastScanResult) return;
+      const { normalizedUrl, assessment } = lastScanResult;
+      const t = i18n[currentLang];
+
+      const content = `================================================
+SECURITY SCAN REPORT - CYBERSHIELD
+================================================
+Target URL   : ${normalizedUrl}
+Status       : ${t[assessment.verdictKey]}
+Threat Score : ${assessment.threatScore}%
+Generated At : ${new Date().toLocaleString()}
+
+SUMMARY:
+${t[assessment.verdictKey + "_desc"]}
+
+FINDINGS:
+${assessment.findingKeys.map(k => {
+  let msg = t[k.key] || "";
+  if (k.count !== undefined) msg = msg.replace("{count}", k.count);
+  if (k.words !== undefined) msg = msg.replace("{words}", k.words);
+  return "- " + msg;
+}).join("\n")}
+================================================`;
+
+      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `security-report-${Date.now()}.txt`;
+      a.click();
+    }
+
+    function exportHistoryToCSV() {
+      if (!scanHistory.length) return alert(currentLang === "ar" ? "لا يوجد سجل لتصديره." : "No logs available to export.");
+      const t = i18n[currentLang];
+      let csv = "URL,Status,Threat Score,Timestamp\n";
+      scanHistory.forEach(i => {
+        csv += `"${i.url}","${t[i.verdictKey] || i.verdictKey}",${i.threatScore}%,"${i.timestamp}"\n`;
+      });
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `scans-history-${Date.now()}.csv`;
+      a.click();
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+  </script>
+</body>
+</html>

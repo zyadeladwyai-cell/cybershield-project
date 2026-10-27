@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CyberShield - بوابة الدخول والتسجيل</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #080c14;
+      --card-bg: #0f172a;
+      --card-border: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-cyan: #06b6d4;
+      --accent-blue: #3b82f6;
+      --safe-color: #10b981;
+      --suspicious-color: #f59e0b;
+      --phishing-color: #ef4444;
+      --font-arabic: 'Cairo', sans-serif;
+      --font-latin: 'Inter', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-arabic);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+    html[lang="en"] body { font-family: var(--font-latin); }
+    .hidden { display: none !important; }
+
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 32px 32px;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .glow-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(140px);
+      z-index: -1;
+      opacity: 0.18;
+    }
+    .orb-1 { top: -10%; right: -5%; width: 500px; height: 500px; background: var(--accent-cyan); }
+    .orb-2 { bottom: -10%; left: -5%; width: 500px; height: 500px; background: var(--accent-blue); }
+
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      max-width: 1050px;
+      margin: 0 auto;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.25rem;
+    }
+    .brand-shield { font-size: 1.5rem; }
+    .brand-text {
+      background: linear-gradient(135deg, #fff, var(--text-muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .nav-actions { display: flex; align-items: center; gap: 16px; }
+    .nav-link { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 600; }
+    .nav-link:hover { color: var(--accent-cyan); }
+    .lang-switcher {
+      display: flex;
+      background: #141d30;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 3px;
+    }
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 5px 14px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .lang-btn.active { background: var(--accent-cyan); color: #041019; }
+
+    .auth-container {
+      max-width: 460px;
+      margin: 40px auto 60px;
+      padding: 0 16px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+    }
+
+    .auth-header { text-align: center; margin-bottom: 20px; }
+    .auth-icon { font-size: 2.5rem; margin-bottom: 8px; }
+    .auth-header h2 { font-size: 1.5rem; font-weight: 800; }
+    .auth-sub { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
+
+    .auth-tabs {
+      display: flex;
+      background: #141d30;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 20px;
+    }
+    .auth-tab {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px;
+      font-family: inherit;
+      font-weight: 700;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .auth-tab.active { background: #1e293b; color: var(--accent-cyan); }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .form-group label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .form-group input {
+      background: #131d33;
+      border: 1px solid #243352;
+      border-radius: 8px;
+      color: #fff;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+    }
+    .form-group input:focus { border-color: var(--accent-cyan); }
+
+    .form-options {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      margin-bottom: 16px;
+    }
+    .remember-me { color: var(--text-muted); display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .forgot-link { color: var(--accent-cyan); text-decoration: none; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      border: none;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      width: 100%;
+      transition: opacity 0.2s;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+
+    .demo-logins {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--card-border);
+      text-align: center;
+    }
+    .demo-label { font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 8px; }
+    .demo-buttons { display: flex; gap: 10px; justify-content: center; }
+
+    .chip {
+      background: #152037;
+      border: 1px solid #253556;
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .chip:hover { transform: translateY(-1px); }
+    .chip-safe:hover { border-color: var(--safe-color); color: var(--safe-color); }
+    .chip-phishing:hover { border-color: var(--phishing-color); color: var(--phishing-color); }
+
+    .pw-strength { height: 4px; background: #243352; border-radius: 2px; overflow: hidden; margin-top: 4px; }
+    .pw-strength-fill { height: 100%; width: 0%; transition: width 0.3s, background-color 0.3s; }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+
+  <nav class="top-nav">
+    <div class="brand">
+      <span class="brand-shield">🛡️</span>
+      <span class="brand-text">CyberShield</span>
+    </div>
+    <div class="nav-actions">
+      <a href="index.html" class="nav-link" data-i18n="back_home">← تخطي للرئيسية</a>
+      <div class="lang-switcher">
+        <button class="lang-btn active" id="lang-ar-btn" onclick="setLanguage('ar')">العربية</button>
+        <button class="lang-btn" id="lang-en-btn" onclick="setLanguage('en')">English</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="auth-container">
+    <div class="card">
+      <div class="auth-header">
+        <div class="auth-icon">🔐</div>
+        <h2 id="auth-title" data-i18n="login_title">تسجيل الدخول إلى حسابك</h2>
+        <p class="auth-sub" id="auth-subtitle" data-i18n="login_subtitle">مرحباً بك مجدداً، أدخل بياناتك لمتابعة إدارة وفحص الروابط</p>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login" onclick="switchAuthMode('login')" data-i18n="tab_login">تسجيل الدخول</button>
+        <button class="auth-tab" id="tab-register" onclick="switchAuthMode('register')" data-i18n="tab_register">حساب جديد</button>
+      </div>
+
+      <form id="auth-form" onsubmit="handleAuthSubmit(event)">
+        <div class="form-group hidden" id="group-name">
+          <label data-i18n="label_name">الاسم بالكامل</label>
+          <input type="text" id="input-name" placeholder="زياد العدوي">
+        </div>
+
+        <div class="form-group">
+          <label data-i18n="label_email">البريد الإلكتروني</label>
+          <input type="email" id="input-email" required placeholder="user@example.com">
+        </div>
+
+        <div class="form-group">
+          <label data-i18n="label_password">كلمة المرور</label>
+          <input type="password" id="input-password" required placeholder="••••••••" oninput="checkPasswordStrength(this.value)">
+          <div class="pw-strength hidden" id="pw-strength-bar">
+            <div class="pw-strength-fill" id="pw-fill"></div>
+          </div>
+        </div>
+
+        <div class="form-group hidden" id="group-confirm-password">
+          <label data-i18n="label_confirm_password">تأكيد كلمة المرور</label>
+          <input type="password" id="input-confirm-password" placeholder="••••••••">
+        </div>
+
+        <div class="form-options" id="login-options">
+          <label class="remember-me">
+            <input type="checkbox" id="remember-me"> <span data-i18n="remember_me">تذكرني</span>
+          </label>
+          <a href="#" class="forgot-link" data-i18n="forgot_password">نسيت كلمة المرور؟</a>
+        </div>
+
+        <button type="submit" class="btn-primary" id="submit-btn" data-i18n="btn_login">دخول</button>
+      </form>
+
+      <div class="demo-logins">
+        <span class="demo-label" data-i18n="quick_access">دخول سريع للتجربة:</span>
+        <div class="demo-buttons">
+          <button type="button" class="chip chip-safe" onclick="fillDemo('user')" data-i18n="demo_user">حساب مستخدم عادي</button>
+          <button type="button" class="chip chip-phishing" onclick="fillDemo('admin')" data-i18n="demo_admin">حساب مسؤول (Admin)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const authI18n = {
+      ar: {
+        back_home: "← تخطي للرئيسية",
+        login_title: "تسجيل الدخول إلى حسابك",
+        login_subtitle: "مرحباً بك مجدداً، أدخل بياناتك لمتابعة إدارة وفحص الروابط",
+        register_title: "إنشاء حساب مستخدم جديد",
+        register_subtitle: "احصل على سجل فحص مخصص وتقارير أمنية متقدمة",
+        tab_login: "تسجيل الدخول",
+        tab_register: "حساب جديد",
+        label_name: "الاسم بالكامل",
+        label_email: "البريد الإلكتروني",
+        label_password: "كلمة المرور",
+        label_confirm_password: "تأكيد كلمة المرور",
+        remember_me: "تذكرني",
+        forgot_password: "نسيت كلمة المرور؟",
+        btn_login: "دخول",
+        btn_register: "إنشاء الحساب",
+        quick_access: "دخول سريع للتجربة:",
+        demo_user: "حساب مستخدم عادي",
+        demo_admin: "حساب مسؤول (Admin)",
+        err_match: "كلمتا المرور غير متطابقتين!"
+      },
+      en: {
+        back_home: "← Skip to Home",
+        login_title: "Sign In to Your Account",
+        login_subtitle: "Welcome back, enter your credentials to manage scans",
+        register_title: "Create a New Account",
+        register_subtitle: "Get personalized URL logs, audit reports, and security alerts",
+        tab_login: "Sign In",
+        tab_register: "Register",
+        label_name: "Full Name",
+        label_email: "Email Address",
+        label_password: "Password",
+        label_confirm_password: "Confirm Password",
+        remember_me: "Remember me",
+        forgot_password: "Forgot Password?",
+        btn_login: "Sign In",
+        btn_register: "Create Account",
+        quick_access: "Quick Demo Access:",
+        demo_user: "Standard User",
+        demo_admin: "Admin Console",
+        err_match: "Passwords do not match!"
+      }
+    };
+
+    let currentLang = "ar";
+    let currentMode = "login";
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+      document.getElementById("lang-ar-btn").classList.toggle("active", lang === "ar");
+      document.getElementById("lang-en-btn").classList.toggle("active", lang === "en");
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (authI18n[lang][key]) el.textContent = authI18n[lang][key];
+      });
+      updateTextForMode();
+    }
+
+    function switchAuthMode(mode) {
+      currentMode = mode;
+      const isReg = mode === "register";
+      document.getElementById("tab-login").classList.toggle("active", !isReg);
+      document.getElementById("tab-register").classList.toggle("active", isReg);
+      document.getElementById("group-name").classList.toggle("hidden", !isReg);
+      document.getElementById("group-confirm-password").classList.toggle("hidden", !isReg);
+      document.getElementById("pw-strength-bar").classList.toggle("hidden", !isReg);
+      document.getElementById("login-options").classList.toggle("hidden", isReg);
+      updateTextForMode();
+    }
+
+    function updateTextForMode() {
+      const t = authI18n[currentLang];
+      const isReg = currentMode === "register";
+      document.getElementById("auth-title").textContent = isReg ? t.register_title : t.login_title;
+      document.getElementById("auth-subtitle").textContent = isReg ? t.register_subtitle : t.login_subtitle;
+      document.getElementById("submit-btn").textContent = isReg ? t.btn_register : t.btn_login;
+    }
+
+    function checkPasswordStrength(val) {
+      if (currentMode !== "register") return;
+      const fill = document.getElementById("pw-fill");
+      let score = 0;
+      if (val.length > 5) score += 30;
+      if (/[A-Z]/.test(val)) score += 30;
+      if (/[0-9]/.test(val)) score += 20;
+      if (/[^A-Za-z0-9]/.test(val)) score += 20;
+      fill.style.width = score + "%";
+      if (score < 40) fill.style.backgroundColor = "#ef4444";
+      else if (score < 75) fill.style.backgroundColor = "#f59e0b";
+      else fill.style.backgroundColor = "#10b981";
+    }
+
+    function fillDemo(type) {
+      if (type === "admin") {
+        document.getElementById("input-email").value = "admin@cybershield.com";
+        document.getElementById("input-password").value = "admin12345";
+      } else {
+        document.getElementById("input-email").value = "user@demo.com";
+        document.getElementById("input-password").value = "user12345";
+      }
+    }
+
+    function handleAuthSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById("input-email").value.trim();
+      const pw = document.getElementById("input-password").value;
+
+      if (currentMode === "register") {
+        const cpw = document.getElementById("input-confirm-password").value;
+        if (pw !== cpw) {
+          alert(authI18n[currentLang].err_match);
+          return;
+        }
+      }
+
+      sessionStorage.setItem("userLoggedIn", "true");
+      if (email.includes("admin")) {
+        window.location.href = "admin.html";
+      } else {
+        window.location.href = "index.html";
+      }
+    }
+  </script>
+</body>
+</html>

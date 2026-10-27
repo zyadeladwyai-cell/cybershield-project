@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CyberShield - لوحة تحكم الإدارة (Admin Console)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #080c14;
+      --card-bg: #0f172a;
+      --card-border: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-cyan: #06b6d4;
+      --accent-blue: #3b82f6;
+      --safe-color: #10b981;
+      --suspicious-color: #f59e0b;
+      --phishing-color: #ef4444;
+      --font-arabic: 'Cairo', sans-serif;
+      --font-latin: 'Inter', sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-arabic);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+    html[lang="en"] body { font-family: var(--font-latin); }
+    .mono { font-family: var(--font-code); }
+    .text-danger { color: var(--phishing-color) !important; }
+    .text-success { color: var(--safe-color) !important; }
+    .hidden { display: none !important; }
+    .mt-20 { margin-top: 20px; }
+
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 32px 32px;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.25rem;
+    }
+    .brand-shield { font-size: 1.5rem; }
+    .brand-text {
+      background: linear-gradient(135deg, #fff, var(--text-muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .admin-badge {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-inline-start: 8px;
+    }
+
+    .nav-actions { display: flex; align-items: center; gap: 14px; }
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+    .nav-link:hover { color: var(--accent-cyan); }
+
+    .lang-switcher {
+      display: flex;
+      background: #141d30;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 3px;
+    }
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 5px 14px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    .lang-btn.active { background: var(--accent-cyan); color: #041019; }
+
+    .btn-logout {
+      background: #24141d;
+      border: 1px solid #4a1d24;
+      color: #ef4444;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .btn-logout:hover { background: #ef4444; color: #fff; }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 30px 20px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .header {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .header h1 { font-size: 2rem; font-weight: 900; }
+    .subtitle { color: var(--text-muted); max-width: 640px; font-size: 0.95rem; }
+
+    .stats-overview {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .stat-title { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+    .stat-value { font-size: 2rem; font-weight: 900; }
+    .stat-trend { font-size: 0.75rem; color: var(--text-muted); }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    }
+
+    .tabs-header {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      cursor: pointer;
+      font-weight: 700;
+      border-radius: 8px;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .tab-btn.active { background: #1e293b; color: var(--accent-cyan); }
+
+    .add-entry-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .add-entry-row input {
+      flex: 2;
+      min-width: 240px;
+      background: #131d33;
+      border: 1px solid #243352;
+      border-radius: 8px;
+      color: #fff;
+      padding: 10px 14px;
+      outline: none;
+      font-family: var(--font-code);
+      direction: ltr;
+    }
+    .add-entry-row select {
+      flex: 1;
+      min-width: 170px;
+      background: #131d33;
+      border: 1px solid #243352;
+      border-radius: 8px;
+      color: #fff;
+      padding: 10px 14px;
+      outline: none;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      border: none;
+      color: #fff;
+      font-weight: 700;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .grid-2-cols {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .list-heading { font-size: 0.95rem; margin-bottom: 12px; font-weight: 700; }
+    .domain-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .domain-item {
+      background: #141d30;
+      border: 1px solid var(--card-border);
+      padding: 10px 14px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+      direction: ltr;
+    }
+    .btn-del { background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 1rem; }
+
+    .rules-config-list { display: flex; flex-direction: column; gap: 14px; }
+    .rule-toggle-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #141d30;
+      padding: 14px 18px;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+    }
+    .card-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+
+    .switch { position: relative; display: inline-block; width: 48px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #243352; transition: 0.3s; border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
+      background-color: white; transition: 0.3s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--accent-cyan); }
+    input:checked + .slider:before { transform: translateX(24px); }
+
+    .table-responsive { overflow-x: auto; margin-top: 10px; }
+    .history-table { width: 100%; border-collapse: collapse; text-align: right; font-size: 0.85rem; }
+    html[lang="en"] .history-table { text-align: left; }
+    .history-table th, .history-table td { padding: 12px; border-bottom: 1px solid var(--card-border); }
+    .history-table th { color: var(--text-muted); font-weight: 600; }
+    .btn-retest {
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <nav class="top-nav">
+    <div class="brand">
+      <span class="brand-shield">🛡️</span>
+      <span class="brand-text">CyberShield Admin</span>
+      <span class="admin-badge">SuperAdmin</span>
+    </div>
+    <div class="nav-actions">
+      <a href="index.html" class="nav-link" data-i18n="btn_view_site">🌐 واجهة الفحص الرئيسية</a>
+      <div class="lang-switcher">
+        <button class="lang-btn active" id="lang-ar-btn" onclick="setLanguage('ar')">العربية</button>
+        <button class="lang-btn" id="lang-en-btn" onclick="setLanguage('en')">English</button>
+      </div>
+      <button class="btn-logout" onclick="logout()" data-i18n="btn_logout">خروج</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="header">
+      <h1 data-i18n="admin_title">لوحة إدارة قواعد الأمان والتهديدات</h1>
+      <p class="subtitle" data-i18n="admin_subtitle">التحكم في القوائم السوداء والبيضاء، وضبط محرك القواعد، ومراقبة السجلات الأمنية المباشرة</p>
+    </header>
+
+    <section class="stats-overview">
+      <div class="stat-card">
+        <span class="stat-title" data-i18n="stat_users">المستخدمين المسجلين</span>
+        <span class="stat-value mono" id="count-users">482</span>
+        <span class="stat-trend text-success" data-i18n="stat_active_now">🟢 23 نشط الآن</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-title" data-i18n="stat_blocked_urls">نطاقات القائمة السوداء</span>
+        <span class="stat-value mono text-danger" id="count-blacklist">124</span>
+        <span class="stat-trend" data-i18n="stat_manual_auto">محدثة تلقائياً ويدوياً</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-title" data-i18n="stat_whitelist">نطاقات القائمة البيضاء</span>
+        <span class="stat-value mono text-success" id="count-whitelist">52</span>
+        <span class="stat-trend" data-i18n="stat_trusted_domains">نطاقات موثوقة دائماً</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-title" data-i18n="stat_engine_status">حالة المحرك الهجين</span>
+        <span class="stat-value mono text-success" data-i18n="stat_active">نشط 100%</span>
+        <span class="stat-trend" data-i18n="stat_zero_downtime">بدون أي توقف</span>
+      </div>
+    </section>
+
+    <div class="card">
+      <div class="tabs-header">
+        <button class="tab-btn active" id="tab-lists" onclick="switchAdminTab('lists')" data-i18n="tab_lists">إدارة القوائم (Blacklist & Whitelist)</button>
+        <button class="tab-btn" id="tab-rules" onclick="switchAdminTab('rules')" data-i18n="tab_rules">ضبط قواعد الفحص (Rule Engine Config)</button>
+        <button class="tab-btn" id="tab-logs" onclick="switchAdminTab('logs')" data-i18n="tab_logs">سجل عمليات النظام (Audit Logs)</button>
+      </div>
+
+      <div id="panel-lists">
+        <div class="add-entry-row">
+          <input type="text" id="new-domain-input" placeholder="fake-bank-login.xyz">
+          <select id="domain-list-type">
+            <option value="blacklist" data-i18n="opt_blacklist">قائمة سوداء (Blacklist)</option>
+            <option value="whitelist" data-i18n="opt_whitelist">قائمة بيضاء (Whitelist)</option>
+          </select>
+          <button class="btn-primary" onclick="addDomainEntry()" data-i18n="btn_add_domain">+ إضافة نطاق</button>
+        </div>
+
+        <div class="grid-2-cols mt-20">
+          <div>
+            <h4 class="list-heading text-danger" data-i18n="heading_blacklist">⛔ القائمة السوداء (محظورة فورياً)</h4>
+            <ul class="domain-list" id="blacklist-ul"></ul>
+          </div>
+          <div>
+            <h4 class="list-heading text-success" data-i18n="heading_whitelist">✅ القائمة البيضاء (آمنة ومستثناة)</h4>
+            <ul class="domain-list" id="whitelist-ul"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div id="panel-rules" class="hidden">
+        <div class="rules-config-list">
+          <div class="rule-toggle-item">
+            <div>
+              <strong data-i18n="rule_ip_title">فحص عناوين الـ IP المباشرة</strong>
+              <p class="card-sub" data-i18n="rule_ip_desc">اعتبار الروابط التي تستخدم أرقام IP كخطر تصيد فوري</p>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+          </div>
+
+          <div class="rule-toggle-item">
+            <div>
+              <strong data-i18n="rule_at_title">فحص رمز التوجيه الخفي (@)</strong>
+              <p class="card-sub" data-i18n="rule_at_desc">حجب أي رابط يستغل رمز @ لخداع الضحية بعنوان مضلل</p>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+          </div>
+
+          <div class="rule-toggle-item">
+            <div>
+              <strong data-i18n="rule_https_title">إلزامية بروتوكول HTTPS</strong>
+              <p class="card-sub" data-i18n="rule_https_desc">إضافة نقاط خطورة على المواقع التي لا تحتوي على شهادات SSL</p>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+          </div>
+
+          <div class="rule-toggle-item">
+            <div>
+              <strong data-i18n="rule_keywords_title">رصد الكلمات الحساسة (Keywords Monitor)</strong>
+              <p class="card-sub" data-i18n="rule_keywords_desc">تتبع كلمات مثل: login, verify, banking, account, paypal</p>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+          </div>
+        </div>
+      </div>
+
+      <div id="panel-logs" class="hidden">
+        <div class="table-responsive">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th data-i18n="th_url">الرابط</th>
+                <th data-i18n="th_ip">عنوان المستخدم</th>
+                <th data-i18n="th_verdict">القرار</th>
+                <th data-i18n="th_time">التوقيت</th>
+                <th data-i18n="th_action">إجراء</th>
+              </tr>
+            </thead>
+            <tbody id="admin-logs-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const adminI18n = {
+      ar: {
+        btn_view_site: "🌐 واجهة الفحص الرئيسية",
+        btn_logout: "خروج",
+        admin_title: "لوحة إدارة قواعد الأمان والتهديدات",
+        admin_subtitle: "التحكم في القوائم السوداء والبيضاء، وضبط محرك القواعد، ومراقبة السجلات الأمنية المباشرة",
+        stat_users: "المستخدمين المسجلين",
+        stat_active_now: "🟢 23 نشط الآن",
+        stat_blocked_urls: "نطاقات القائمة السوداء",
+        stat_manual_auto: "محدثة تلقائياً ويدوياً",
+        stat_whitelist: "نطاقات القائمة البيضاء",
+        stat_trusted_domains: "نطاقات موثوقة دائماً",
+        stat_engine_status: "حالة المحرك الهجين",
+        stat_active: "نشط 100%",
+        stat_zero_downtime: "بدون أي توقف",
+        tab_lists: "إدارة القوائم (Blacklist & Whitelist)",
+        tab_rules: "ضبط قواعد الفحص (Rule Engine Config)",
+        tab_logs: "سجل عمليات النظام (Audit Logs)",
+        opt_blacklist: "قائمة سوداء (Blacklist)",
+        opt_whitelist: "قائمة بيضاء (Whitelist)",
+        btn_add_domain: "+ إضافة نطاق",
+        heading_blacklist: "⛔ القائمة السوداء (محظورة فورياً)",
+        heading_whitelist: "✅ القائمة البيضاء (آمنة ومستثناة)",
+        rule_ip_title: "فحص عناوين الـ IP المباشرة",
+        rule_ip_desc: "اعتبار الروابط التي تستخدم أرقام IP كخطر تصيد فوري",
+        rule_at_title: "فحص رمز التوجيه الخفي (@)",
+        rule_at_desc: "حجب أي رابط يستغل رمز @ لخداع الضحية بعنوان مضلل",
+        rule_https_title: "إلزامية بروتوكول HTTPS",
+        rule_https_desc: "إضافة نقاط خطورة على المواقع التي لا تحتوي على شهادات SSL",
+        rule_keywords_title: "رصد الكلمات الحساسة (Keywords Monitor)",
+        rule_keywords_desc: "تتبع كلمات مثل: login, verify, banking, account, paypal",
+        th_url: "الرابط",
+        th_ip: "عنوان المستخدم",
+        th_verdict: "القرار",
+        th_time: "التوقيت",
+        th_action: "إجراء",
+        btn_block: "حظر فوري"
+      },
+      en: {
+        btn_view_site: "🌐 Scanner Interface",
+        btn_logout: "Sign Out",
+        admin_title: "Security & Threat Admin Console",
+        admin_subtitle: "Manage dynamic Blacklists/Whitelists, tweak detection rules, and view real-time audit logs",
+        stat_users: "Registered Users",
+        stat_active_now: "🟢 23 Active Now",
+        stat_blocked_urls: "Blacklisted Domains",
+        stat_manual_auto: "Updated auto & manual",
+        stat_whitelist: "Whitelisted Domains",
+        stat_trusted_domains: "Always trusted domains",
+        stat_engine_status: "Hybrid Engine Status",
+        stat_active: "Active 100%",
+        stat_zero_downtime: "Zero downtime",
+        tab_lists: "Domain Lists (Blacklist & Whitelist)",
+        tab_rules: "Rule Engine Tuning",
+        tab_logs: "System Audit Logs",
+        opt_blacklist: "Blacklist (Malicious)",
+        opt_whitelist: "Whitelist (Trusted)",
+        btn_add_domain: "+ Add Domain",
+        heading_blacklist: "⛔ Blacklist (Immediate Block)",
+        heading_whitelist: "✅ Whitelist (Always Safe)",
+        rule_ip_title: "Inspect Raw IP Hosts",
+        rule_ip_desc: "Flag numeric IP hosts as instant high-risk threat",
+        rule_at_title: "Deceptive '@' Redirect Monitor",
+        rule_at_desc: "Instantly block URLs exploiting @ symbol redirection",
+        rule_https_title: "Enforce HTTPS Protocol",
+        rule_https_desc: "Penalize insecure plain HTTP connections without SSL",
+        rule_keywords_title: "Sensitive Keywords Detection",
+        rule_keywords_desc: "Trace terms like: login, verify, banking, account, paypal",
+        th_url: "URL",
+        th_ip: "Client IP",
+        th_verdict: "Verdict",
+        th_time: "Timestamp",
+        th_action: "Action",
+        btn_block: "Block Now"
+      }
+    };
+
+    let currentLang = "ar";
+    let blacklist = JSON.parse(localStorage.getItem("admin_blacklist") || '["fake-paypal-verify.xyz", "appleid-login-secure.net", "banking-update-auth.com"]');
+    let whitelist = JSON.parse(localStorage.getItem("admin_whitelist") || '["google.com", "microsoft.com", "github.com", "paypal.com"]');
+
+    const mockLogs = [
+      { url: "http://192.168.1.15/login.php", ip: "197.34.12.9", verdict: "Phishing", time: "09:14 PM" },
+      { url: "https://www.google.com", ip: "156.204.88.3", verdict: "Safe", time: "09:12 PM" },
+      { url: "http://secure-update.freehost.cc", ip: "41.68.221.70", verdict: "Suspicious", time: "09:05 PM" }
+    ];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderLists();
+      renderLogs();
+    });
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+      document.getElementById("lang-ar-btn").classList.toggle("active", lang === "ar");
+      document.getElementById("lang-en-btn").classList.toggle("active", lang === "en");
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (adminI18n[lang][key]) el.textContent = adminI18n[lang][key];
+      });
+      renderLogs();
+    }
+
+    function switchAdminTab(tab) {
+      ["lists", "rules", "logs"].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.toggle("active", t === tab);
+        document.getElementById(`panel-${t}`).classList.toggle("hidden", t !== tab);
+      });
+    }
+
+    function renderLists() {
+      const bUl = document.getElementById("blacklist-ul");
+      const wUl = document.getElementById("whitelist-ul");
+      bUl.innerHTML = blacklist.map((d, i) => `
+        <li class="domain-item">
+          <span>${d}</span>
+          <button class="btn-del" onclick="removeDomain('black', ${i})">✖</button>
+        </li>
+      `).join("");
+      wUl.innerHTML = whitelist.map((d, i) => `
+        <li class="domain-item">
+          <span>${d}</span>
+          <button class="btn-del" onclick="removeDomain('white', ${i})">✖</button>
+        </li>
+      `).join("");
+      document.getElementById("count-blacklist").textContent = blacklist.length;
+      document.getElementById("count-whitelist").textContent = whitelist.length;
+    }
+
+    function addDomainEntry() {
+      const input = document.getElementById("new-domain-input");
+      const val = input.value.trim().toLowerCase();
+      const type = document.getElementById("domain-list-type").value;
+      if (!val) return;
+      if (type === "blacklist") {
+        if (!blacklist.includes(val)) blacklist.unshift(val);
+        localStorage.setItem("admin_blacklist", JSON.stringify(blacklist));
+      } else {
+        if (!whitelist.includes(val)) whitelist.unshift(val);
+        localStorage.setItem("admin_whitelist", JSON.stringify(whitelist));
+      }
+      input.value = "";
+      renderLists();
+    }
+
+    function removeDomain(type, idx) {
+      if (type === "black") {
+        blacklist.splice(idx, 1);
+        localStorage.setItem("admin_blacklist", JSON.stringify(blacklist));
+      } else {
+        whitelist.splice(idx, 1);
+        localStorage.setItem("admin_whitelist", JSON.stringify(whitelist));
+      }
+      renderLists();
+    }
+
+    function renderLogs() {
+      const tbody = document.getElementById("admin-logs-tbody");
+      tbody.innerHTML = mockLogs.map((log) => `
+        <tr>
+          <td class="mono" style="direction:ltr;">${log.url}</td>
+          <td class="mono">${log.ip}</td>
+          <td><strong>${log.verdict}</strong></td>
+          <td style="color: var(--text-muted);">${log.time}</td>
+          <td><button class="btn-retest text-danger" onclick="alert('تم حظر النطاق!')">${adminI18n[currentLang].btn_block}</button></td>
+        </tr>
+      `).join("");
+    }
+
+    function logout() {
+      sessionStorage.removeItem("userLoggedIn");
+      window.location.href = "auth.html";
+    }
+  </script>
+</body>
+</html>

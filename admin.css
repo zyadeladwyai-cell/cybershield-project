@@ -1,0 +1,139 @@
+.admin-container {
+  max-width: 1100px;
+}
+
+.admin-badge {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-inline-start: 8px;
+}
+
+.btn-logout {
+  background: #24141d;
+  border: 1px solid #4a1d24;
+  color: #ef4444;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+.btn-logout:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+.add-entry-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.add-entry-row input {
+  flex: 2;
+  min-width: 260px;
+  background: #131d33;
+  border: 1px solid #243352;
+  border-radius: 8px;
+  color: #fff;
+  padding: 10px 14px;
+  outline: none;
+}
+
+.add-entry-row select {
+  flex: 1;
+  min-width: 180px;
+  background: #131d33;
+  border: 1px solid #243352;
+  border-radius: 8px;
+  color: #fff;
+  padding: 10px 14px;
+  outline: none;
+  font-family: inherit;
+}
+
+.mt-20 { margin-top: 20px; }
+
+.list-heading {
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+}
+
+.domain-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.domain-item {
+  background: #141d30;
+  border: 1px solid var(--card-border);
+  padding: 8px 12px;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-code);
+  font-size: 0.85rem;
+}
+
+.btn-del {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.rules-config-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rule-toggle-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #141d30;
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+}
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #243352;
+  transition: 0.3s;
+  border-radius: 24px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px; width: 18px;
+  left: 3px; bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+input:checked + .slider { background-color: var(--accent-cyan); }
+input:checked + .slider:before { transform: translateX(24px); }
